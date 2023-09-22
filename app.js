@@ -2,7 +2,22 @@ import Express from "express";
 import multer from "multer";
 import path from "path";
 import jwt from 'jsonwebtoken';
-import { signUp, updateName, updatePhoneNumber, getUserName, insertImageURL, Login, getUserData, getProfilePhoto, editImageProfile, editImageBanner } from "./database.js";
+import {
+  signUp,
+  updateName,
+  updatePhoneNumber,
+  getUserName,
+  insertImageURL,
+  Login,
+  getUserData,
+  getProfilePhoto,
+  editImageProfile,
+  editImageBanner,
+  addLinks,
+  getLinksWithColumnNames,
+  createName,
+  updateParraf
+} from "./database.js";
 import cors from "cors";
 import bcrypt from "bcryptjs"
 
@@ -40,7 +55,7 @@ app.post('/edit-profile-image', filesUploaded, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message || "An error occurred while registering user" });
   }
-}) 
+})
 
 app.post('/edit-image', filesUploaded, async (req, res) => {
   try {
@@ -53,7 +68,7 @@ app.post('/edit-image', filesUploaded, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message || "An error occurred while registering user" });
   }
-}) 
+})
 
 app.post('/upload-image', filesUploaded, async (req, res) => {
   try {
@@ -111,9 +126,41 @@ app.post("/login", async (req, res) => {
 app.post("/update-name", async (req, res) => {
   try {
     const { insertId, name } = req.body; // Obtén el user_id y el nombre del cuerpo de la solicitud
-    const result = await updateName(insertId, name);
+    const result = await createName(insertId, name);
     res.status(201).json({ message: "Name updated successfully", result });
   } catch (error) {
+    res.status(500).json({ error: "An error occurred while updating name" });
+  }
+});
+
+app.put("/updateName", async (req, res) => {
+  try {
+    const { editName, idUser } = req.body;
+    const result = await updateName(editName, idUser);
+
+    if (result.success) {
+      res.status(201).json({ message: "Name updated successfully" });
+    } else {
+      res.status(400).json({ error: result.message });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while updating name" });
+  }
+});
+
+app.put("/updateDescription", async (req, res) => {
+  try {
+    const { editParraf, idUser } = req.body;
+    const result = await updateParraf(editParraf, idUser);
+
+    if (result.success) {
+      res.status(201).json({ message: "Name updated successfully" });
+    } else {
+      res.status(400).json({ error: result.message });
+    }
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "An error occurred while updating name" });
   }
 });
@@ -178,8 +225,36 @@ app.get("/profileImage/:email", async (req, res) => {
   }
 });
 
+app.post("/links", async (req, res) => {
+  try {
+    const { selectedTextValue, userInput, storedIdNumber } = req.body;
+    console.log(`${selectedTextValue} ${userInput} ${storedIdNumber}`)
+    const result = await addLinks(selectedTextValue, userInput, storedIdNumber);
+    console.log('Resultado de la inserción:', result);
+    res.status(201).json({ message: "Link actualizado exitosamente", result });
+  } catch (error) {
+    console.error("Error en la ruta POST /links:", error);
+    res.status(500).json({ error: error.message });
+  }
+})
+
+app.get('/obtenerUsuario/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const links = await getLinksWithColumnNames(userId)
+    if (links) {
+      res.status(200).json({ links });
+    } else {
+      res.status(404).json({ error: "picture not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred" });
+  }
+
+})
+
 app.listen(8080, () => {
   console.log("Server running on port 8080");
 });
-
 
