@@ -231,7 +231,6 @@ export const updateName = async (editName, idUser) => {
   }
 };
 
-
 export const updateParraf = async (editParraf, idUser) => {
   try {
     const connection = await pool.getConnection();
@@ -242,12 +241,52 @@ export const updateParraf = async (editParraf, idUser) => {
 
     if (result.affectedRows > 0) {
       // Update was successful
+      console.log('ok')
       return { success: true };
     } else {
       // No rows were affected, possibly because the user ID doesn't exist
       return { success: false, message: 'User not found or no changes made' };
     }
   } catch (error) {
-    throw error; // Let the error propagate up to handle it in the route handler
+    console.error('Error al actualizar la descripción:', error);
+    throw { success: false, message: 'Error updating description' };
+  }
+
+};
+
+export const deleteImages = async (imagePath, imageType) => {
+  try {
+    const connection = await pool.getConnection();
+
+    let query;
+    let values;
+
+    if (imageType === 'profile_image_url') {
+      // Si el tipo de imagen es 'profile_image_url', actualiza la columna 'profile_image'
+      query = 'UPDATE data_users SET profile_image_url = NULL WHERE profile_image_url = ?';
+      values = [imagePath];
+    } else if (imageType === 'banner_image') {
+      // Si el tipo de imagen es 'banner_image', actualiza la columna 'banner_image'
+      query = 'UPDATE data_users SET banner_image = NULL WHERE banner_image = ?';
+      values = [imagePath];
+    } else {
+      // Tipo de imagen no reconocido, maneja el error como desees
+      throw new Error('Tipo de imagen no reconocido');
+    }
+
+    const [result] = await connection.query(query, values);
+    connection.release();
+
+    if (result.affectedRows > 0) {
+      // La actualización fue exitosa, lo que significa que la referencia a la foto se eliminó
+      return { success: true };
+    } else {
+      // No se encontró la foto en la base de datos
+      return { success: false, message: 'Imagen no encontrada en la base de datos' };
+    }
+  } catch (error) {
+    throw error;
   }
 };
+
+

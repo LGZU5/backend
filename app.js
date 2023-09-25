@@ -16,10 +16,12 @@ import {
   addLinks,
   getLinksWithColumnNames,
   createName,
-  updateParraf
+  updateParraf,
+  deleteImages
 } from "./database.js";
 import cors from "cors";
 import bcrypt from "bcryptjs"
+import fs from 'fs/promises'
 
 const corsOptions = {
   origin: "*",
@@ -160,9 +162,10 @@ app.put("/updateDescription", async (req, res) => {
       res.status(400).json({ error: result.message });
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "An error occurred while updating name" });
+    console.error('Error en el manejador de rutas al actualizar la descripción:', error);
+    res.status(500).json({ error: 'An error occurred while updating description' });
   }
+
 });
 
 app.post("/update-number", async (req, res) => {
@@ -253,6 +256,28 @@ app.get('/obtenerUsuario/:id', async (req, res) => {
   }
 
 })
+
+app.delete('/deleteImage', async (req, res) => {
+  try {
+    const imagePath = req.body.urlPath; // Ruta relativa de la imagen
+    const imageType = req.body.imageType; // Tipo de imagen (puede ser 'profilePhoto' o 'banner')
+
+    console.log('Ruta de la imagen:', imagePath);
+    console.log('Tipo de imagen:', imageType);
+
+    // Elimina la imagen del sistema de archivos
+    await fs.unlink(`public\\${imagePath}`);
+
+    const result = await deleteImages(imagePath, imageType);
+    console.log('Resultado de la eliminación:', result);
+
+    // Envía una respuesta de éxito
+    res.status(200).json({ message: 'Imagen eliminada con éxito', result });
+  } catch (error) {
+    console.error('Error al eliminar la imagen:', error);
+    res.status(500).json({ error: 'Error al eliminar la imagen' });
+  }
+});
 
 app.listen(8080, () => {
   console.log("Server running on port 8080");
