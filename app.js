@@ -17,7 +17,9 @@ import {
   getLinksWithColumnNames,
   createName,
   updateParraf,
-  deleteImages
+  deleteImages,
+  editLinks,
+  editTesteo
 } from "./database.js";
 import cors from "cors";
 import bcrypt from "bcryptjs"
@@ -170,9 +172,10 @@ app.put("/updateDescription", async (req, res) => {
 
 app.post("/update-number", async (req, res) => {
   try {
-    const { insertId, number, countryCode } = req.body;
-    const fullPhoneNumber = `${countryCode}-${number}`;
-    const result = await updatePhoneNumber(insertId, fullPhoneNumber);
+    const { insertId, number} = req.body;
+    const fullPhoneNumber = `tel:+57${number}`;
+    const fullWhatsapp = `https://wa.me/57${number}`
+    const result = await updatePhoneNumber(insertId, fullPhoneNumber, fullWhatsapp);
     res.status(200).json({ message: "Phone number updated successfully", result });
   } catch (error) {
     res.status(500).json({ error: "An error occurred while updating phone number" });
@@ -278,6 +281,34 @@ app.delete('/deleteImage', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar la imagen' });
   }
 });
+
+app.post('/editLinks', async (req, res) => {
+  try {
+    const {storedIdNumber, editLink, selectedTextValue} = req.body
+    const response = await editLinks(storedIdNumber, editLink, selectedTextValue);
+    if (response) {
+      res.status(200).json(response);
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error edit links:", error);
+    res.status(500).json({ error: "An error occurred while edit links" });
+  }
+})
+
+app.post('/testeo', filesUploaded, async (req, res) => {
+  try {
+    const fileLocation = req.file.path; // Ubicación del archivo en el servidor
+    const email = req.body.email;
+    console.log(req.file)
+    const fileLocationWithoutPublic = fileLocation.replace('\public', '');
+    await editTesteo(email, fileLocationWithoutPublic);
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "An error occurred while registering user" });
+  }
+})
 
 app.listen(8080, () => {
   console.log("Server running on port 8080");

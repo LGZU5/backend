@@ -38,6 +38,18 @@ export const signUp = async (email, cryptPass) => {
     } else {
       console.log('f')
     }
+
+    var emailToSend = `Mailto:${email}`
+
+    const insertQuery2 = 'UPDATE links_usuarios SET Email = ? WHERE id_user = ?';
+    const insertValues2 = [emailToSend, userId];
+    const [insertResult2] = await connection.query(insertQuery2, insertValues2);
+    if (insertResult2.affectedRows === 1) {
+      console.log('exito al ingresar el dato')
+    } else {
+      console.log('f')
+    }
+
     connection.release();
     return result;
   } catch (error) {
@@ -58,12 +70,22 @@ export const createName = async (insertId, name) => {
   }
 };
 
-export const updatePhoneNumber = async (insertId, fullPhoneNumber) => {
+export const updatePhoneNumber = async (insertId, fullPhoneNumber, fullWhatsapp) => {
   try {
     const connection = await pool.getConnection();
-    const query = 'UPDATE data_users SET number = ? WHERE id = ?';
+    const query = 'UPDATE links_usuarios SET Telefono = ? WHERE id_user = ?';
     const values = [fullPhoneNumber, insertId];
     const [result] = await connection.query(query, values);
+
+    const queryWhatsapp = 'UPDATE links_usuarios SET Whatsapp = ? WHERE id_user = ?';
+    const valuesWhatsapp = [fullWhatsapp, insertId];
+    const [resultWhatsapp] = await connection.query(queryWhatsapp, valuesWhatsapp);
+
+    if (resultWhatsapp.affectedRows === 1) {
+      console.log('exito al ingresar el wasa')
+    } else {
+      console.log('f')
+    }
     connection.release();
     return result;
   } catch (error) {
@@ -289,4 +311,30 @@ export const deleteImages = async (imagePath, imageType) => {
   }
 };
 
+export const editLinks = async (storedIdNumber, editLink, selectedTextValue) => {
+  try {
+    const connection = await pool.getConnection();
+    const query = `UPDATE links_usuarios SET ${selectedTextValue}= ? WHERE id_user = ?`;
+    const values = [editLink, storedIdNumber];
+    const [result] = await connection.query(query, values);
+    return result;
+  } catch (error) {
+    console.error("Error en editLinks:", error);
+    throw error;
+  }
+}
+
+
+export const editTesteo = async (email, fileLocationWithoutPublic) => {
+  try {
+    const connection = await pool.getConnection();
+    const query = 'UPDATE data_users SET logo = ? WHERE email = ?';
+    const values = [fileLocationWithoutPublic, email];
+    const [result] = await connection.query(query, values);
+    connection.release();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
 
